@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('candidatures', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->enum('role', ['candidat', 'recruteur', 'admin'])->default('candidat');
-            $table->rememberToken();
+            $table->foreignId('offre_id')->constrained()->onDelete('cascade');
+            $table->foreignId('profil_id')->constrained()->onDelete('cascade');
+            $table->text('message')->nullable();
+            $table->enum('statut', ['en_attente', 'acceptee', 'refusee'])->default('en_attente');
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('candidatures');
     }
 };
