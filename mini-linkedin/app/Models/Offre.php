@@ -1,15 +1,11 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 class Offre extends Model
 {
     use HasFactory;
-
-     protected $fillable = [
+    protected $fillable = [
         'user_id',
         'titre',
         'description',
@@ -17,16 +13,13 @@ class Offre extends Model
         'type',
         'actif',
     ];
-
     protected $casts = [
         'actif' => 'boolean',
     ];
-
     public function recruteur()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
     public function candidatures()
     {
         return $this->hasMany(Candidature::class);
