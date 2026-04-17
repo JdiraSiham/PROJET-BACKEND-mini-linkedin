@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-namespace App\Http\Controllers;
-
 use App\Events\CandidatureDeposee;
 use App\Events\StatutCandidatureMis;
 use App\Models\Candidature;
@@ -21,23 +18,30 @@ class CandidatureController extends Controller
         return Auth::guard('api')->user();
     }
 
-    // POST /api/offres/{offre}/candidater
     public function candidater(Request $request, Offre $offre): JsonResponse
     {
-        $user   = $this->user();
+        $user = $this->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $profil = $user->profil;
 
-        if (! $profil) {
-            return response()->json(['error' => 'Vous devez créer un profil avant de postuler.'],
-422);
+        if (!$profil) {
+            return response()->json([
+                'error' => 'Vous devez créer un profil avant de postuler.'
+            ], 422);
         }
 
         $dejaPostule = Candidature::where('offre_id', $offre->id)
-                                  ->where('profil_id', $profil->id)
-                                  ->exists();
+            ->where('profil_id', $profil->id)
+            ->exists();
 
         if ($dejaPostule) {
-            return response()->json(['error' => 'Vous avez déjà postulé à cette offre.'], 422);
+            return response()->json([
+                'error' => 'Vous avez déjà postulé à cette offre.'
+            ], 422);
         }
 
         $candidature = Candidature::create([
@@ -47,40 +51,38 @@ class CandidatureController extends Controller
             'statut'    => 'en_attente',
         ]);
 
-        // Déclencher l'event
         event(new CandidatureDeposee($candidature->load('profil.user', 'offre')));
 
-        return response()->json(['message' => 'Candidature soumise.', 'candidature' =>
-$candidature], 201);
+        return response()->json([
+            'message' => 'Candidature soumise.',
+            'candidature' => $candidature
+        ], 201);
     }
 
-    // GET /api/mes-candidatures
     public function mesCandidatures(): JsonResponse
     {
-        $profil = $this->user()->profil;
+        $profil = $this->user()?->profil;
 
-        if (! $profil) {
+        if (!$profil) {
             return response()->json(['error' => 'Profil introuvable.'], 404);
         }
 
-        $candidatures = $profil->candidatures()->with('offre')->get();
-
-        return response()->json($candidatures);
+        return response()->json(
+            $profil->candidatures()->with('offre')->get()
+        );
     }
 
-    // GET /api/offres/{offre}/candidatures
     public function candidaturesOffre(Offre $offre): JsonResponse
     {
         if ($offre->user_id !== $this->user()->id) {
             return response()->json(['error' => 'Accès interdit.'], 403);
         }
 
-        $candidatures = $offre->candidatures()->with('profil.user')->get();
-
-        return response()->json($candidatures);
+        return response()->json(
+            $offre->candidatures()->with('profil.user')->get()
+        );
     }
 
-    // PATCH /api/candidatures/{candidature}/statut
     public function updateStatut(Request $request, Candidature $candidature): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -91,24 +93,25 @@ $candidature], 201);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Vérifier que le recruteur est bien propriétaire de l'offre
         if ($candidature->offre->user_id !== $this->user()->id) {
             return response()->json(['error' => 'Accès interdit.'], 403);
         }
 
-        $ancienStatut  = $candidature->statut;
-        $nouveauStatut = $request->statut;
+        $ancienStatut = $candidature->statut;
 
-        $candidature->update(['statut' => $nouveauStatut]);
+        $candidature->update([
+            'statut' => $request->statut
+        ]);
 
-        // Déclencher l'event
-        event(new StatutCandidatureMis($candidature, $ancienStatut, $nouveauStatut));
+        event(new StatutCandidatureMis(
+            $candidature,
+            $ancienStatut,
+            $request->statut
+        ));
 
-        return response()->json(['message' => 'Statut mis à jour.', 'candidature' =>
-$candidature]);
+        return response()->json([
+            'message' => 'Statut mis à jour.',
+            'candidature' => $candidature
+        ]);
     }
-}
-class CandidatureController extends Controller
-{
-    //
 }
