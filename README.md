@@ -1,5 +1,5 @@
 # PROJET-BACKEND-mini-linkedin
-API REST de plateforme de recrutement inspirée de LinkedIn, développée avec **Laravel 11** et authentification **JWT**.
+API REST de plateforme de recrutement inspirée de LinkedIn, développée avec **Laravel 10** et authentification **JWT**.
 ---
 ## Description
 Ce projet permet de gérer une plateforme de recrutement avec plusieurs rôles :
