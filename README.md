@@ -35,7 +35,7 @@ Ce projet permet de gérer une plateforme de recrutement avec plusieurs rôles :
 ---
 ## Installation
 ```bash
-git clone https://github.com/ton-repo/mini-linkedin.git
+git clone https://github.com/JdiraSiham/PROJET-BACKEND-mini-linkedin.git
 cd mini-linkedin
 composer install
 cp .env.example .env
